@@ -30,17 +30,53 @@ for word in word_dic:
 import matplotlib
 import matplotlib.pyplot as plot
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 import json
 
 plot.rcParams["figure.figsize"] = [8, 8]
 plot.rcParams['font.size'] = 6
 
+distortions = []
+
+# 1~10クラスタまでのSSE値を求めて図示（エルボー法）
+for i  in range(1,11):
+    km = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=300, random_state=0)
+    km.fit(data)
+    distortions.append(km.inertia_)
+
+# k-meansモデルを用いてクラスタリング
+model = KMeans(n_clusters=3, init='k-means++', n_init=10, max_iter=300, random_state=0)
+model.fit(data)
+# 変数名被り防止
+kluster=model.predict(data)
+
 pca = PCA(n_components=2)
 pca.fit(data)
 data_pca = pca.transform(data)
 
+i = 0
+word_list = []
+# python3.7以降dictは順序を保持する
+for word, val in word_dic.items():
+	if val['skip']:
+		continue
 
-length = len(data_pca)
+	word_list.append([word] + list(val.values()) + [data_pca[i]] + [kluster[i]])
+	i += 1
+
+word_df = pd.DataFrame(word_list, columns=['word', 'num', 'dsc_num', 'skip', 'pca_vec', 'cluster'])
+print(word_df)
+word_df.to_csv('word_df.csv', sep=',')
+
+plot.plot(range(1,11),distortions,marker='o')
+plot.xlabel('Number of clusters')
+plot.ylabel('Distortion')
+plot.savefig('sse_plot.png')
+
+# Clear the current figure.
+plot.clf()
+
+markers = ['.', '+', 'x']
 i = 0
 for key, val in word_dic.items():
 	if val['skip']:
@@ -50,7 +86,7 @@ for key, val in word_dic.items():
 	y = data_pca[i][1]
 	# x = 0で0.9, x = 1で0.09, x = 0.5で0.2
 	color = 1 / (1.1 + 10 * val['dsc_num'] / val['num'])
-	plot.plot(x, y, ms=5.0, zorder=2, marker=".", color=str(color))
+	plot.plot(x, y, ms=5.0, zorder=2, marker=markers[kluster[i]], color=str(color))
 	if val['dsc_num'] > 0:
 		plot.annotate(key, (x, y), size=14)
 		print(key)
@@ -59,3 +95,23 @@ for key, val in word_dic.items():
 	i += 1
 
 plot.savefig('word-map.png')
+
+plot.clf()
+
+# クラスタごとに色分け
+i = 0
+for key, val in word_dic.items():
+	if val['skip']:
+		continue
+
+	x = data_pca[i][0]
+	y = data_pca[i][1]
+	color = 1 - 1 / (kluster[i] + 1)
+	plot.plot(x, y, ms=5.0, zorder=2, marker=markers[kluster[i]], color=str(color))
+	if val['dsc_num'] > 0:
+		plot.annotate(key, (x, y), size=14)
+
+	i += 1
+
+plot.savefig('word-map2.png')
+
