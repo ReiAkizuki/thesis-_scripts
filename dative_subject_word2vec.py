@@ -4,7 +4,7 @@ import gensim
 import pandas as pd
 from gensim.models import KeyedVectors
 
-texts_df = pd.read_csv('candidate_yn3.csv')
+texts_df = pd.read_csv('candidate_yn.csv')
 word_dic = {}
 data = []
 model = KeyedVectors.load_word2vec_format('/usr/local/lib/entity_vector/entity_vector.model.bin', binary=True)
