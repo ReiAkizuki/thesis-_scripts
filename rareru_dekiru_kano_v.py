@@ -66,7 +66,10 @@ not_kano_list = [ '流れる', 'かける', '入れる', '向ける', '助ける
 	'告げる', 'のせる', '隠れる', 'ぶれる', '求める', '捧げる', '笑わせる', '傾げる', '震える', '構える',
 	'染める', '恐れる', '育てる', '見上げる', '建てる', '止める', '続ける', '充てる', '分かれる', '整える'
 	,'温める', '取り入れる', 'あわせる', '分ける', '知らせる', '辞める', '間違える', 'まぎれる', '紛れる',
-	'組み合わせる', '潰れる', 'つぶれる', '与える', 'あたえる', '傾ける' ]
+	'組み合わせる', '潰れる', 'つぶれる', '与える', 'あたえる', '傾ける', '唱える', 'とげる', '取り付ける',
+	'付ける', 'こぎつける', '改める', 'なめる', '問い合わせる', '言い聞かせる', '食わせる', '賑わせる',
+	'光らせる', 'みせる', '透ける', 'まかせる', '溶ける', '欠ける', '詰める', 'しかれる', '結びつける',
+	'痛める', '寝かせる', '捧げる', '踏み入れる', '伏せる', '引き立てる', 'つける' ]
 
 # 出現した全動詞のリスト
 verb_list = []
@@ -104,10 +107,16 @@ for text in article_df[4]:
 				elif tag[5] == '一段':
 					v = tag[7]
 					if len(v) > 2 and v[-2:] in mapping and not v in not_kano_list:
-						org_v = v[0:-2] + mapping[v[-2:]]
-						if org_v == re.split('[,\t]', m.parse(org_v))[7]:
-							# Kanou_doushi
-							morphemes[i] = 'k' if re.search('[dkv]', morphemes[i-1]) else morphemes[i-1] + 'k'
+						# 身に着ける, 手に入れるを排除
+						if v == '着ける' and word_list[i-2] == '身' and word_list[i-1] == 'に':
+							morphemes[i] = 'v' if re.search('[dkv]', morphemes[i-1]) else morphemes[i-1] + 'v'
+						if v == '入れる' and word_list[i-2] == '手' and word_list[i-1] == 'に':
+							morphemes[i] = 'v' if re.search('[dkv]', morphemes[i-1]) else morphemes[i-1] + 'v'
+						else:
+							org_v = v[0:-2] + mapping[v[-2:]]
+							if org_v == re.split('[,\t]', m.parse(org_v))[7]:
+								# Kanou_doushi
+								morphemes[i] = 'k' if re.search('[dkv]', morphemes[i-1]) else morphemes[i-1] + 'k'
 				else:
 					morphemes[i] = 'v' if re.search('[dkv]', morphemes[i-1]) else morphemes[i-1] + 'v'
 			elif tag[1] == '動詞' and tag[7] in ['れる', 'られる']:
