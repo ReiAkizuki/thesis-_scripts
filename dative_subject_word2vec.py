@@ -31,20 +31,27 @@ import matplotlib
 import matplotlib.pyplot as plot
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-import json
 
 plot.rcParams["figure.figsize"] = [8, 8]
 plot.rcParams['font.size'] = 6
 
 distortions = []
 
-# 1~10クラスタまでのSSE値を求めて図示（エルボー法）
+# 1~10クラスタまでのSSE値を求めて図示（エルボー図）
 for i  in range(1,11):
     km = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=300, random_state=0)
     km.fit(data)
     distortions.append(km.inertia_)
 
-# k-meansモデルを用いてクラスタリング
+plot.plot(range(1,11), distortions, marker='o', color='0.0')
+plot.xlabel('クラスタ数', size=14)
+plot.ylabel('クラスタ内誤差平方和（SSE）', size=14)
+plot.savefig('sse_plot.png')
+
+# Clear the current figure.
+plot.clf()
+
+# k-meansモデルを用いてクラスタリング、クラスター数はエルボー図から3に決定した
 model = KMeans(n_clusters=3, init='k-means++', n_init=10, max_iter=300, random_state=0)
 model.fit(data)
 # 変数名被り防止
@@ -67,14 +74,6 @@ for word, val in word_dic.items():
 word_df = pd.DataFrame(word_list, columns=['word', 'num', 'dsc_num', 'skip', 'pca_vec', 'cluster'])
 print(word_df)
 word_df.to_csv('word_df.csv', sep=',')
-
-plot.plot(range(1,11),distortions,marker='o')
-plot.xlabel('Number of clusters')
-plot.ylabel('Distortion')
-plot.savefig('sse_plot.png')
-
-# Clear the current figure.
-plot.clf()
 
 markers = ['.', '+', 'x']
 i = 0
